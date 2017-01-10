@@ -38,4 +38,9 @@ public interface MainView {
      * @return activity context.
      */
     Context getContext();
+
+    /**
+     * set the view offline because we loaded local data.
+     */
+    void setOffline();
 }

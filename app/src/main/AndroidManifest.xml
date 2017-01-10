@@ -12,6 +12,11 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+<!--Local dataModel -->
+        <meta-data
+            android:name="AA_MODELS"
+            android:value="com.egygames.apps.rssreader.model.Article" />
+
         <activity
             android:name=".main.MainActivity"
             android:screenOrientation="portrait">

@@ -3,12 +3,24 @@ package com.egygames.apps.rssreader.model;
 import android.content.Context;
 import android.util.Log;
 
+import com.activeandroid.ActiveAndroid;
+import com.activeandroid.query.Delete;
+import com.activeandroid.query.Select;
 import com.egygames.apps.rssreader.R;
-import com.koushikdutta.async.future.Future;
-import com.koushikdutta.async.future.FutureCallback;
-import com.koushikdutta.ion.Ion;
 
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.concurrent.FutureCallback;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonSyntaxException;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.RequestParams;
+import com.loopj.android.http.TextHttpResponseHandler;
+
+import java.lang.reflect.Modifier;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Main Data Model that retrieves from network.
@@ -30,12 +42,18 @@ public class DataModel {
     private TokenResponse tokenResponse;
     private long tokenExpirationTime;
     private static DataModel ourInstance = new DataModel();
+    private AsyncHttpClient client;
+    private Gson gson;
 
     public static DataModel getInstance() {
         return ourInstance;
     }
 
     private DataModel() {
+        client = new AsyncHttpClient();
+        gson = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.FINAL, Modifier.TRANSIENT, Modifier.STATIC)
+                .create();// create gson serilzer.
     }
 
     /**
@@ -48,12 +66,33 @@ public class DataModel {
     public void getData(final Context context, final int page, final FutureCallback<DataResponse> callback) {
         if (isTokenValid()) {// check if the current token is valid.
             // starts a new request.
-            Ion.with(context)
-                    .load(METHOD_GET, URL)
-                    .addQuery(TOKEN_PARAMETER, tokenResponse.getToken())
-                    .addQuery(PAGE_PARAMETER, String.valueOf(page))
-                    .as(DataResponse.class)
-                    .setCallback(callback);
+            RequestParams params = new RequestParams();
+            params.put(TOKEN_PARAMETER, tokenResponse.getToken());
+            params.put(PAGE_PARAMETER, String.valueOf(page));
+            client.get(URL, params, new TextHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, String res) {
+                    try {
+                        DataResponse response = gson.fromJson(res, DataResponse.class);
+                        if (page != 0 && response.getData().size() > 0) {// remove the first duplicated item if  not the fist page.
+                            response.getData().remove(0);
+                        }
+                        if (page == 0) {
+                            saveLocally(response.getData());// if the first page cache it for no network situations.
+                        }
+                        callback.completed(response);
+                    } catch (JsonSyntaxException jsonSyntaxException) {
+                        callback.failed(jsonSyntaxException);
+
+                    }
+
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
+                    callback.failed(new Exception());
+                }
+            });
         } else {
             //get new token if token is not valid.
             getToken(context, page, callback);
@@ -61,6 +100,7 @@ public class DataModel {
 
 
     }
+
 
     /**
      * Get a new token from the server.
@@ -70,23 +110,27 @@ public class DataModel {
      * @param callback Callback to be called after finishing the getting data request
      */
     private void getToken(final Context context, final int page, final FutureCallback<DataResponse> callback) {
-        Ion.with(context)
-                .load(METHOD_POST, URL)
-                .setBodyParameter(APP_KEY_PARAMETER, "demo")
-                .setBodyParameter(APP_SECRET_PARAMETER, "12345678")
-                .as(TokenResponse.class)
-                .setCallback(new FutureCallback<TokenResponse>() {
-                    @Override
-                    public void onCompleted(Exception e, TokenResponse result) {
-                        if (e != null || result == null) {
-                            callback.onCompleted(new Exception(), null);
-                            return;
-                        }
-                        DataModel.this.tokenResponse = result;
-                        DataModel.this.tokenExpirationTime = new Date().getTime() + result.getTtl();
-                        getData(context, page, callback);
-                    }
-                });
+        RequestParams params = new RequestParams();
+        params.put(APP_KEY_PARAMETER, "demo");
+        params.put(APP_SECRET_PARAMETER, "12345678");
+        client.post(URL, params, new TextHttpResponseHandler() {
+            @Override
+            public void onSuccess(int statusCode, Header[] headers, String res) {
+                try {
+                    TokenResponse response = gson.fromJson(res, TokenResponse.class);
+                    DataModel.this.tokenResponse = response;
+                    DataModel.this.tokenExpirationTime = new Date().getTime() + response.getTtl();
+                    getData(context, page, callback);
+                } catch (JsonSyntaxException jsonSyntaxException) {
+                    callback.failed(jsonSyntaxException);
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Header[] headers, String res, Throwable t) {
+                callback.failed(new Exception());
+            }
+        });
 
     }
 
@@ -100,4 +144,37 @@ public class DataModel {
         return tokenResponse != null && (tokenExpirationTime > new Date().getTime());
     }
 
+
+    private void saveLocally(List<Article> data) {
+        //Delete old cached data.
+        new Delete().from(Article.class).execute();
+
+        //Start db transaction.
+        ActiveAndroid.beginTransaction();
+        for (Article article : data) {
+            article.save();       //Save the article locally
+        }
+        ActiveAndroid.setTransactionSuccessful();
+        ActiveAndroid.endTransaction();//end the transaction.
+
+
+    }
+
+
+    public void loadLocalData(final FutureCallback<DataResponse> callback) {
+
+        //Load saved items.
+        List<Article> localItems = new Select()
+                .from(Article.class)
+                .orderBy("ID asc")
+                .execute();
+
+        //construct data response object.
+        DataResponse response = new DataResponse();
+        response.setData(localItems);
+        response.setSuccess(true);
+        callback.completed(response);
+
+
+    }
 }

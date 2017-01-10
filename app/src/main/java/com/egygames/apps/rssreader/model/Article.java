@@ -7,10 +7,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.List;
+
+import com.activeandroid.Model;
+import com.activeandroid.annotation.Column;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Article implements Parcelable {
+public class Article extends Model implements Parcelable {
+
 
     @SerializedName("nid")
     @Expose
@@ -18,30 +22,44 @@ public class Article implements Parcelable {
     @SerializedName("node_type")
     @Expose
     private String nodeType;
+
+    @Column(name = "title")
     @SerializedName("title")
     @Expose
     private String title;
+
     @SerializedName("author_id")
     @Expose
     private String authorId;
     @SerializedName("author_img")
     @Expose
     private Object authorImg;
+
+    @Column(name = "details")
     @SerializedName("details")
     @Expose
     private String details;
+
     @SerializedName("comment_count")
     @Expose
     private String commentCount;
+
+
+    @Column(name = "created_date")
     @SerializedName("created_date")
     @Expose
     private String createdDate;
+
     @SerializedName("view_count")
     @Expose
     private String viewCount;
+
+    @Column(name = "main_img")
     @SerializedName("main_img")
     @Expose
     private String mainImg;
+
+    @Column(name = "section_name")
     @SerializedName("section_name")
     @Expose
     private String sectionName;
@@ -72,6 +90,10 @@ public class Article implements Parcelable {
     @SerializedName("page_logo")
     @Expose
     private String pageLogo;
+
+
+    public Article() {
+    }
 
     public String getNid() {
         return nid;

@@ -120,6 +120,14 @@ public class MainActivity extends BaseActivity implements MainView, View.OnClick
     }
 
     /**
+     * set the view offline because the presenter  loaded local data.
+     */
+    @Override
+    public void setOffline() {
+        recyclerView.removeMoreListener();// remove loading more because the device is offline.
+    }
+
+    /**
      * On clicking article item
      * @param view recycler view row.
      */
