@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Test</string>
+    <string name="app_name">اختبار</string>
     <string name="err_connecting">تأكد من الأتصال بالانترنت</string>
     <string name="err_unknown">حدث خطاء غير معروف</string>
     <string name="title_activity_article">Article</string>

@@ -30,7 +30,6 @@ public class DataModel {
     private TokenResponse tokenResponse;
     private long tokenExpirationTime;
     private static DataModel ourInstance = new DataModel();
-    private Future currentRequest;
 
     public static DataModel getInstance() {
         return ourInstance;
@@ -41,14 +40,15 @@ public class DataModel {
 
     /**
      * Getting the next page from the server
-     * @param context context object needed by ION
-     * @param page the page to retrieve.
+     *
+     * @param context  context object needed by ION
+     * @param page     the page to retrieve.
      * @param callback Callback to be called after finishing the request
      */
     public void getData(final Context context, final int page, final FutureCallback<DataResponse> callback) {
         if (isTokenValid()) {// check if the current token is valid.
-            // starts a new request, and get the request reference so we can cancel anytime.
-            currentRequest = Ion.with(context)
+            // starts a new request.
+            Ion.with(context)
                     .load(METHOD_GET, URL)
                     .addQuery(TOKEN_PARAMETER, tokenResponse.getToken())
                     .addQuery(PAGE_PARAMETER, String.valueOf(page))
@@ -64,12 +64,13 @@ public class DataModel {
 
     /**
      * Get a new token from the server.
-     * @param context context object needed by ION
-     * @param page the page to retrieve.
+     *
+     * @param context  context object needed by ION
+     * @param page     the page to retrieve.
      * @param callback Callback to be called after finishing the getting data request
      */
     private void getToken(final Context context, final int page, final FutureCallback<DataResponse> callback) {
-        currentRequest = Ion.with(context)
+        Ion.with(context)
                 .load(METHOD_POST, URL)
                 .setBodyParameter(APP_KEY_PARAMETER, "demo")
                 .setBodyParameter(APP_SECRET_PARAMETER, "12345678")
@@ -91,6 +92,7 @@ public class DataModel {
 
     /**
      * check the current token
+     *
      * @return true if the token exist and valid, false otherwise.
      */
     private boolean isTokenValid() {
@@ -98,12 +100,4 @@ public class DataModel {
         return tokenResponse != null && (tokenExpirationTime > new Date().getTime());
     }
 
-    /**
-     * Cancel the Network requests.
-     * @param context object needed by ION
-     */
-    public void cancelAllRequests(final Context context) {
-        if (!currentRequest.isDone())
-            currentRequest.cancel();
-    }
 }

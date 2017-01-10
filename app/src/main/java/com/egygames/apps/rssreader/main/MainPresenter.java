@@ -14,8 +14,5 @@ public interface MainPresenter {
      */
     void getData(int page);
 
-    /**
-     * Cancel all network requests on close of activity
-     */
-    void cancelAllRequests() ;
+
 }

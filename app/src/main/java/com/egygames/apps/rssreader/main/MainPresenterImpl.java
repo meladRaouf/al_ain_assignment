@@ -58,11 +58,5 @@ public class MainPresenterImpl implements MainPresenter, FutureCallback<DataResp
 
     }
 
-    /**
-     * Cancel all network requests on close of activity
-     */
-    @Override
-    public void cancelAllRequests() {
-        DataModel.getInstance().cancelAllRequests(mainView.getContext());
-    }
+
 }

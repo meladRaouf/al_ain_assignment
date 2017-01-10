@@ -5,8 +5,11 @@ package com.egygames.apps.rssreader;
 
 import android.content.Context;
 
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import java.util.Locale;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
@@ -27,8 +30,22 @@ public class BaseActivity extends AppCompatActivity {
         //Inject CalligraphyContextWrapper into Context
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setDefaultLocale();// set arabic as default locale
+    }
 
-
+    /**
+     * Setting Arabic as the default local
+     */
+    public void setDefaultLocale() {
+        Locale locale = new Locale("ar");
+        Locale.setDefault(locale);
+        Configuration config = new Configuration();
+        config.locale = locale;
+        getResources().updateConfiguration(config, getResources().getDisplayMetrics());
+    }
 
 
 

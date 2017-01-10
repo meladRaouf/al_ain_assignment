@@ -149,10 +149,4 @@ public class MainActivity extends BaseActivity implements MainView, View.OnClick
     }
 
 
-    @Override
-    protected void onStop() {
-        presenter.cancelAllRequests();//Stop all requests on activity stop;
-        super.onStop();
-
-    }
 }
