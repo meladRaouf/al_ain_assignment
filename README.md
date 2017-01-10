@@ -1,17 +1,15 @@
 # al_ain_assignment
 The assignemnt with the following limitations:
 
-1-caching.
+1-Caching only the first page and desplay it if no netwok availaple.
 
-2-repeated first article after loading new pages (needs adjustment from the server).
+2-Font size adjustment settings.
 
-3-font size adjustment settings.
+3-Ordering articles by date.
 
-4- ordering articles by date.
+4-Add pull to refresh on the home screen.
 
-5-Add pull to refresh on the home screen.
+5-Proper error handling using error codes (returnd from server for example errorcode 1 means token expired ...).
 
-6-proper error handling using error codes (returnd from server for example errorcode 1 means token expired ...).
-
-7-encript app_key and app_secret.
+6-Encript app_key and app_secret.
  
